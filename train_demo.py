@@ -40,6 +40,7 @@ parser = argparse.ArgumentParser(description='tutorial_benCowen')
 
 ###### LOGISTICS
 # Forget CUDA.
+# This means you just put "--use-cpu" instead of "--use-cpu=True"
 parser.add_argument('--use-cpu', action='store_true', default=False,
                     help='Disables CUDA training.')
 # Control random seed.
@@ -54,6 +55,9 @@ parser.add_argument('--save-filename', type=str, default='saves/no-name_', metav
 # Prints training progress every few batches.
 parser.add_argument('--print-frequency', type=int, default=4, metavar='N',
                     help='How many times per epoch to print training progress.')
+# Whether to save the whole model
+parser.add_argument('--save-model',  action='store_true',
+                    help='Saves trained model.')
 
 ###### DATA
 # Choose dataset.
@@ -110,6 +114,7 @@ rand.seed(args.data_seed)
 #   mess up your repeatability! We use Python
 #   random module to select the validation set.
 
+# If we have a convolutional net, we don't want to vectorize incoming samples.
 if args.modelName=='LeNet5':
   vect = False
 else:
@@ -166,15 +171,17 @@ if __name__ == "__main__":
     #  SH.perf.epoch_train += [ results ]
 
 
-    #######################################################
-    # (2) Load the model and get going!!
-    #######################################################
-    # Create model
+    ############################################################
+    # (2) Load the model and set up loss function and optimizer.
+    ############################################################
+    # Create model.
     if args.modelName=='LeNet5':
       model = models.LeNet5(num_input_channels=num_input_channels,
                             num_classes = 10, bias=True,
                             window_size=window_size).to(device)
     else:
+      # This instantiates a model with the name "args.modelName"
+      #   from the module "models". 
       model = getattr(models, args.modelName)(len_sample, args.hidden_size,
                                               num_classes = 10).to(device)
 
@@ -186,6 +193,14 @@ if __name__ == "__main__":
     #    "args.opt_method" from the module "torch.optim".
     optimizer = getattr(torch.optim, args.opt_method)(model.parameters(),
                                                       lr=args.init_learn_rate)
+
+    #######################################################
+    # (BONUS): Best practice is to evaluate your
+    #           model *before* training too!!
+    #######################################################
+    SH.perf.epoch_train += [models.test(model, data_loader=train_loader, label="Training")]
+    SH.perf.epoch_test += [models.test(model, data_loader=test_loader, label="Test")]
+
     model.train()
     for epoch in range(1, args.epochs+1):
       print('\nEpoch {} of {}.'.format(epoch, args.epochs,))
