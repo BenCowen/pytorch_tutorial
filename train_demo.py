@@ -237,7 +237,10 @@ if __name__ == "__main__":
       if args.save_filename:
           SH._save()
 
-
+    if args.save_model:
+      print('Saving model...')
+      SH.model = model
+      SH._save()
 
 
 
