@@ -66,7 +66,7 @@ parser.add_argument('--dataset', type=str, default='mnist',
 parser.add_argument('--batch-size', default=256,
                     help='Batch size.')
 parser.add_argument('--valid-size', type=int, default=-1,
-                    help='Disables CUDA training.')
+                    help='Size of validation set in samples.')
 
 ###### OPTIMIZATION
 # Optimization method.
